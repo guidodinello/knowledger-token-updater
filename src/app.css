@@ -1,0 +1,18 @@
+@import "tailwindcss";
+@source "**/*.{html,js,svelte,ts,tsx}";
+@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/forms";
+
+@layer base {
+    body {
+        @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-white;
+    }
+
+    :root {
+        color-scheme: light dark;
+    }
+
+    button {
+        font-weight: 500;
+    }
+}
