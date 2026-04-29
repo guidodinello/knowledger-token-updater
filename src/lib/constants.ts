@@ -1,7 +1,2 @@
-export const STORAGE_KEYS = {
-    ENABLED: "KNOWLEDGER_TOKEN_UPDATER_enabled",
-} as const;
-
-export const DEFAULT_SETTINGS = {
-    enabled: true,
-} as const;
+export const BOT_ENDPOINT = "http://localhost:8080/update-token";
+export const TOKEN_UPDATE_SECRET = "your-secret-here";
