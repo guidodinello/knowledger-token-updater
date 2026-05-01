@@ -21,3 +21,23 @@ export function watchEnabled(callback: (enabled: boolean) => void): () => void {
         callback(enabled);
     });
 }
+
+export async function getSecret(): Promise<string> {
+    const value = await storage.getItem<string>(`local:${STORAGE_KEYS.SECRET}`);
+    const secret = value ?? DEFAULT_SETTINGS.secret;
+    logger.debug("getSecret", secret ? "[set]" : "[not set]");
+    return secret;
+}
+
+export async function setSecret(secret: string): Promise<void> {
+    logger.debug("setSecret", secret ? "[set]" : "[cleared]");
+    await storage.setItem(`local:${STORAGE_KEYS.SECRET}`, secret);
+}
+
+export function watchSecret(callback: (secret: string) => void): () => void {
+    return storage.watch<string>(`local:${STORAGE_KEYS.SECRET}`, (newValue) => {
+        const secret = newValue ?? DEFAULT_SETTINGS.secret;
+        logger.debug("watchSecret callback", secret ? "[set]" : "[not set]");
+        callback(secret);
+    });
+}
