@@ -1,6 +1,9 @@
 import { defineConfig } from "wxt";
 import tailwindcss from "@tailwindcss/vite";
 
+const botEndpoint = process.env.VITE_BOT_ENDPOINT ?? "";
+const botOrigin = botEndpoint ? `${new URL(botEndpoint).origin}/*` : "";
+
 // See https://wxt.dev/api/config.html
 export default defineConfig({
     srcDir: "src",
@@ -9,7 +12,7 @@ export default defineConfig({
         name: "Knowledger Token Updater",
         description: "Automatically updates the knowledger bot token when you log into claude.ai.",
         permissions: ["cookies"],
-        host_permissions: ["https://claude.ai/*"],
+        host_permissions: ["https://claude.ai/*", ...(botOrigin ? [botOrigin] : [])],
         browser_specific_settings: {
             gecko: {
                 id: "knowledger-token-updater@guidodinello.dev",

@@ -22,6 +22,7 @@
         "build:firefox": "wxt build -b firefox",
         "zip": "wxt zip",
         "zip:firefox": "wxt zip -b firefox",
+        "sign:firefox": "pnpm dlx web-ext sign --api-key=${MOZILLA_JWT_ISSUER} --api-secret=${MOZILLA_JWT_SECRET} --channel=unlisted --source-dir=.output/firefox-mv2",
         "check": "svelte-check --tsconfig ./tsconfig.json",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
