@@ -86,6 +86,7 @@ src/
 - All persistent state goes through `storage.ts`
 - Expose `get*`, `set*`, `watch*` functions — never call WXT storage directly from components
 - Define all storage keys in `constants.ts`
+- Always use `wxt/storage` (not `browser.storage` directly) — it provides key namespacing, typed getters, and a `watch()` API
 
 ### Styling
 

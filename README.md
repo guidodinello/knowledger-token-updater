@@ -23,7 +23,15 @@ cd knowledger-token-updater
 pnpm install
 ```
 
-3. Build for your browser:
+3. Create a `.env` file with your bot endpoint (never commit this):
+
+```bash
+VITE_BOT_ENDPOINT=https://your-bot-endpoint
+```
+
+   The bot secret is configured at runtime — open the extension popup after loading it.
+
+4. Build for your browser:
 
 ```bash
 # Chrome/Chromium
@@ -33,7 +41,7 @@ pnpm build
 pnpm build:firefox
 ```
 
-4. Load the extension:
+5. Load the extension:
     - **Chrome**: Go to `chrome://extensions/`, enable "Developer mode", click "Load unpacked", select `.output/chrome-mv3`
     - **Firefox**: Go to `about:debugging#/runtime/this-firefox`, click "Load Temporary Add-on", select any file in `.output/firefox-mv2`
 
