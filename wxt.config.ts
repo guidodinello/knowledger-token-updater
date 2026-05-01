@@ -11,7 +11,7 @@ export default defineConfig({
     manifest: {
         name: "Knowledger Token Updater",
         description: "Automatically updates the knowledger bot token when you log into claude.ai.",
-        permissions: ["cookies"],
+        permissions: ["cookies", "storage"],
         host_permissions: ["https://claude.ai/*", ...(botOrigin ? [botOrigin] : [])],
         browser_specific_settings: {
             gecko: {
