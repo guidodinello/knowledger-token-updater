@@ -101,7 +101,7 @@
             <input
                 type="password"
                 bind:value={secretInput}
-                placeholder={storedSecret ? `••••${storedSecret.slice(-4)}` : "Secret"}
+                placeholder={storedSecret ? `••••••••••••${storedSecret.slice(-4)}` : "Secret"}
                 class="flex-1 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
