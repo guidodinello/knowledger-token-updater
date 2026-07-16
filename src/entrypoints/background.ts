@@ -22,6 +22,10 @@ export default defineBackground(() => {
 
         logger.debug("sessionKey cookie set, updating bot token");
 
+        // Contract with the receiving endpoint (knowledger repo,
+        // knowledger/http_server.py::_handle_update_token, tests/test_http_server_contract.py):
+        // request is {secret, token}, response is {status: "ok"} or {error: string} with the
+        // request/response shape pinned by a test in that repo.
         fetch(BOT_ENDPOINT, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
