@@ -1,6 +1,7 @@
 import { logger } from "@/lib/utils/logger";
 import { BOT_ENDPOINT } from "@/lib/constants";
 import { getEnabled, getSecret } from "@/lib/storage";
+import type { UpdateResponse } from "@/lib/types";
 
 export default defineBackground(() => {
     logger.info("Background script initialized", { id: browser.runtime.id });
@@ -24,20 +25,27 @@ export default defineBackground(() => {
 
         // Contract with the receiving endpoint (knowledger repo,
         // knowledger/http_server.py::_handle_update_token, tests/test_http_server_contract.py):
-        // request is {secret, token}, response is {status: "ok"} or {error: string} with the
-        // request/response shape pinned by a test in that repo.
+        // request is {secret, token}, response is an UpdateResponse with the shape pinned by
+        // a test in that repo.
         fetch(BOT_ENDPOINT, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token: cookie.value, secret }),
         })
             .then((res) => res.json())
-            .then((data: { status: string; error?: string }) => {
-                if (data.status === "ok") {
-                    logger.info("Token updated successfully");
-                } else {
-                    // 403 "wrong account" is expected on work account login
-                    logger.info("Token update skipped:", data.error);
+            .then((data: UpdateResponse) => {
+                switch (data.outcome) {
+                    case "adopted":
+                        logger.info("Token updated successfully");
+                        break;
+                    case "ignored":
+                        // The bot holds its own dedicated claude.ai session and it's still
+                        // alive, so it kept its token rather than take this browser's.
+                        logger.info("Token unchanged:", data.reason);
+                        break;
+                    default:
+                        // 403 "wrong account" is expected on work account login
+                        logger.info("Token update skipped:", data.error);
                 }
             })
             .catch((err) => logger.error("Failed to reach bot endpoint:", err));
