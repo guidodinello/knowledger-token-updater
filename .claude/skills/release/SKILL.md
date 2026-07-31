@@ -11,10 +11,10 @@ Cuts a full release of this addon: version bump, Chrome + Firefox build, AMO sig
 
 | Target | Method |
 |---|---|
-| Firefox | Signed `.xpi` via `pnpm sign:firefox` → AMO unlisted listing (`knowledger-token-updater@guidodinello.dev`) |
+| Firefox | Signed `.xpi` via `pnpm sign:firefox`, attached to the GitHub release; installed via `about:addons` → Install Add-on From File |
 | Chrome | Zip attached to GitHub release → load unpacked at work |
 
-Firefox users install straight from AMO; there is no Chrome Web Store account, so GitHub is Chrome's only distribution channel. **Never attach the signed `.xpi` to the GitHub release** — AMO is already the authoritative, signed copy, and a second copy on GitHub risks someone installing a stale build after a future AMO-side change. (Re-litigated once already — don't redo this.)
+**Unlisted AMO add-ons have no public listing page and no anonymous download link** — confirmed by hitting the AMO file-download URL without developer auth (404). AMO is where signing happens, not where users get the file. GitHub is the only real distribution channel for both targets, so the signed `.xpi` **must** be attached to the release alongside the Chrome zip. (An earlier version of this skill said the opposite, on the wrong assumption that unlisted add-ons were directly installable from an AMO page — corrected after that broke an actual update-check for a user still on the previous version.)
 
 ## When invoked
 
@@ -86,11 +86,12 @@ git push && git push --tags
 
 ## Step 8 — Create the GitHub release
 
-Attach **only the Chrome zip**. Summarize commits since the last tag in the notes, and include install instructions for both targets:
+Attach **both** the Chrome zip and the signed Firefox `.xpi` from `web-ext-artifacts/`. Summarize commits since the last tag in the notes, and include install instructions for both targets:
 
 ```bash
 gh release create v<version> \
   ".output/knowledger-token-updater-<version>-chrome.zip#Chrome Extension" \
+  "web-ext-artifacts/knowledger-token-updater-<version>.xpi#Firefox Extension (signed, install via about:addons → Install Add-on From File)" \
   --title "v<version>" \
   --notes "## Changes
 - <bullet summary from git log>
@@ -98,7 +99,10 @@ gh release create v<version> \
 ## Installation
 
 ### Firefox
-Install via [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/knowledger-token-updater/) (unlisted — use the direct link).
+This add-on is unlisted on AMO — no public install page exists. Download \`knowledger-token-updater-<version>.xpi\` from this release, then:
+1. Open \`about:addons\`
+2. Click the gear icon → **Install Add-on From File...**
+3. Select the downloaded \`.xpi\`
 
 ### Chrome (load unpacked)
 1. Download \`knowledger-token-updater-<version>-chrome.zip\` and extract it
@@ -108,11 +112,11 @@ Install via [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/knowledge
 
 ## Rules
 
-- Never attach the `.xpi` to the GitHub release — AMO is the authoritative Firefox channel (see Distribution model above).
+- Attach both the Chrome zip and the signed `.xpi` to the GitHub release — GitHub is the only real distribution channel for either target (see Distribution model above).
 - Never echo/print `MOZILLA_JWT_SECRET` in any tool output.
 - Never blindly retry a timed-out `sign` — check AMO first (Step 3 / Fallback).
 - Recovery from a failed-after-submission sign is a new patch version and a new tag — never force-push or delete a tag.
-- `web-ext-artifacts/` is gitignored — signed xpis stay local, never committed.
+- `web-ext-artifacts/` is gitignored locally but its file for the current release gets uploaded as a release asset — that's the only copy end users can reach.
 - Don't update `README.md` for a release — it's dev-setup focused and carries no version references.
 
 ## Fallback: poll AMO directly
