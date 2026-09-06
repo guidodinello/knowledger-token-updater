@@ -64,9 +64,11 @@
         "wxt": "^0.19.9"
     },
     "overrides": {
-        "@sveltejs/vite-plugin-svelte": "^4.0.0-next"
+        "@sveltejs/vite-plugin-svelte": "^4.0.0-next",
+        "nanoid": "^3.3.18"
     },
     "resolutions": {
-        "@sveltejs/vite-plugin-svelte": "^4.0.0-next"
+        "@sveltejs/vite-plugin-svelte": "^4.0.0-next",
+        "nanoid": "^3.3.18"
     }
 }
