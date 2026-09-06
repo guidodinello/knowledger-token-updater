@@ -1,4 +1,4 @@
-import { storage } from "wxt/storage";
+import { storage } from "#imports";
 import { STORAGE_KEYS, DEFAULT_SETTINGS } from "@/lib/constants";
 import { logger } from "@/lib/utils/logger";
 
