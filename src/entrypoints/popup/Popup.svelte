@@ -1,6 +1,13 @@
 <script lang="ts">
     import { untrack } from "svelte";
-    import { getEnabled, setEnabled, watchEnabled, getSecret, setSecret, watchSecret } from "@/lib/storage";
+    import {
+        getEnabled,
+        setEnabled,
+        watchEnabled,
+        getSecret,
+        setSecret,
+        watchSecret,
+    } from "@/lib/storage";
     import { logger } from "@/lib/utils/logger";
 
     let enabled = $state(true);
@@ -73,9 +80,9 @@
     }
 </script>
 
-<main class="p-4 min-w-[280px] flex flex-col gap-3">
+<main class="flex min-w-[280px] flex-col gap-3 p-4">
     {#if loading}
-        <div class="h-20 flex items-center justify-center text-sm text-gray-400">Loading...</div>
+        <div class="flex h-20 items-center justify-center text-sm text-gray-400">Loading...</div>
     {:else}
         <div class="flex items-center justify-between">
             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -102,14 +109,14 @@
                 type="password"
                 bind:value={secretInput}
                 placeholder={storedSecret ? `••••••••••••${storedSecret.slice(-4)}` : "Secret"}
-                class="flex-1 px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="flex-1 rounded border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-900 placeholder-gray-400 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             />
             <button
                 type="button"
                 onclick={saveSecret}
-                class="w-16 py-1.5 text-sm font-medium rounded transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 {saved
+                class="w-16 rounded py-1.5 text-sm font-medium transition-colors focus:ring-2 focus:ring-offset-1 focus:outline-none {saved
                     ? 'bg-green-700 text-white focus:ring-green-700'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500'}"
+                    : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'}"
             >
                 {saved ? "Saved" : "Save"}
             </button>

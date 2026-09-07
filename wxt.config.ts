@@ -25,7 +25,7 @@ export default defineConfig({
     vite: () => ({
         plugins: [tailwindcss()],
     }),
-    runner: {
+    webExt: {
         startUrls: ["https://claude.ai"],
     },
 });
