@@ -63,6 +63,17 @@ export default [
         },
     },
 
+    // TypeScript already reports undefined names (svelte-check runs tsc), while no-undef
+    // only knows the hand-kept globals list above, so it flagged real browser APIs such
+    // as fetch. typescript-eslint recommends turning it off for TypeScript:
+    // https://typescript-eslint.io/troubleshooting/faqs/eslint/
+    {
+        files: ["**/*.ts"],
+        rules: {
+            "no-undef": "off",
+        },
+    },
+
     // Svelte files
     {
         files: ["**/*.svelte"],
