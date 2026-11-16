@@ -1,7 +1,11 @@
 import { defineConfig } from "wxt";
 import tailwindcss from "@tailwindcss/vite";
+import { loadEnv } from "vite";
 
-const botEndpoint = process.env.VITE_BOT_ENDPOINT ?? "";
+// Vite only loads .env for the bundled code, after this config runs, so read it here too;
+// otherwise the manifest misses the bot's host permission. An exported variable still wins.
+const botEndpoint =
+    process.env.VITE_BOT_ENDPOINT ?? loadEnv("", process.cwd(), "VITE_").VITE_BOT_ENDPOINT ?? "";
 const botOrigin = botEndpoint ? `${new URL(botEndpoint).origin}/*` : "";
 
 // See https://wxt.dev/api/config.html

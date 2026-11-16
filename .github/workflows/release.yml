@@ -1,0 +1,116 @@
+# Tag-triggered release, adapted from pullscope's release.yml: a pushed `vX.Y.Z`
+# tag builds the Firefox extension, has addons.mozilla.org (AMO) sign it on the
+# *unlisted* channel (a private, self-distributed add-on, never public on AMO),
+# and attaches the signed .xpi to a GitHub Release. Install it from
+# about:addons -> gear -> "Install Add-on From File...".
+#
+# Needs:
+#   - repo secrets AMO_JWT_ISSUER and AMO_JWT_SECRET (an AMO API key:
+#     https://addons.mozilla.org/developers/addon/api/key/)
+#   - repo variable VITE_BOT_ENDPOINT (the bot's https /update-token URL). It is
+#     baked into the bundle and the manifest's host permission at build time.
+#
+# Fails before publishing anything if the tag isn't vX.Y.Z, doesn't match
+# package.json's version, isn't on the default branch, or a required secret or
+# variable is missing.
+name: Release
+
+on:
+    push:
+        tags: ["v*"]
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+    release:
+        name: Sign Firefox build and release
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        env:
+            # Exact version; bump deliberately (web-ext's sign flags change between majors).
+            WEB_EXT_VERSION: 10.8.0
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+              with:
+                  fetch-depth: 0
+                  persist-credentials: false
+
+            - name: Verify tag, version, branch and configuration
+              env:
+                  TAG: ${{ github.ref_name }}
+                  DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+                  VITE_BOT_ENDPOINT: ${{ vars.VITE_BOT_ENDPOINT }}
+                  HAS_AMO_KEY: ${{ secrets.AMO_JWT_ISSUER != '' && secrets.AMO_JWT_SECRET != '' }}
+              run: |
+                  if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo "::error::Tag '$TAG' is not vX.Y.Z"
+                    exit 1
+                  fi
+                  version="${TAG#v}"
+                  manifest_version="$(node -p 'require("./package.json").version')"
+                  if [[ "$manifest_version" != "$version" ]]; then
+                    echo "::error::Tag $TAG != package.json version $manifest_version"
+                    exit 1
+                  fi
+                  if ! git merge-base --is-ancestor "$GITHUB_SHA" "origin/$DEFAULT_BRANCH"; then
+                    echo "::error::$TAG's commit is not on $DEFAULT_BRANCH"
+                    exit 1
+                  fi
+                  if [[ "$VITE_BOT_ENDPOINT" != https://* ]]; then
+                    echo "::error::Repo variable VITE_BOT_ENDPOINT must be set to an https:// URL"
+                    exit 1
+                  fi
+                  if [[ "$HAS_AMO_KEY" != "true" ]]; then
+                    echo "::error::Repo secrets AMO_JWT_ISSUER and AMO_JWT_SECRET must be set"
+                    exit 1
+                  fi
+
+            - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+              with:
+                  version: 10
+
+            - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+              with:
+                  node-version: "24"
+                  cache: pnpm
+
+            - name: Build the Firefox extension
+              env:
+                  VITE_BOT_ENDPOINT: ${{ vars.VITE_BOT_ENDPOINT }}
+              run: |
+                  pnpm install --frozen-lockfile
+                  pnpm build:firefox
+                  origin="$(node -p 'new URL(process.env.VITE_BOT_ENDPOINT).origin')"
+                  if ! grep -q "\"$origin/\*\"" .output/firefox-mv2/manifest.json; then
+                    echo "::error::Built manifest lacks the host permission for $origin"
+                    exit 1
+                  fi
+
+            - name: Sign on addons.mozilla.org (unlisted)
+              env:
+                  WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+                  WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+              run: |
+                  npx --yes "web-ext@$WEB_EXT_VERSION" sign \
+                    --channel=unlisted \
+                    --source-dir=.output/firefox-mv2 \
+                    --artifacts-dir=signed \
+                    --approval-timeout=900000
+
+            - name: Create GitHub Release with the signed .xpi
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  TAG: ${{ github.ref_name }}
+              run: |
+                  shopt -s nullglob
+                  xpis=(signed/*.xpi)
+                  if [[ ${#xpis[@]} -ne 1 ]]; then
+                    echo "::error::Expected exactly one signed .xpi, found ${#xpis[@]}"
+                    exit 1
+                  fi
+                  gh release create "$TAG" --verify-tag --title "$TAG" --generate-notes "${xpis[0]}"
